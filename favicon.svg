@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#a5b4fc;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="#09090b" stroke="url(#grad)" stroke-width="6"/>
+    <path d="M35 35 L20 50 L35 65 M65 35 L80 50 L65 65 M45 70 L55 30" stroke="url(#grad)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
