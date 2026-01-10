@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack-Tools | Organiza tu desarrollo</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-container">
+        <div class="loader-bar"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header">
+        <div class="logo">
+            <i class='bx bx-code-alt'></i>
+            <span>Stack-Tools</span>
+        </div>
+
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#" onclick="MapsTo('home')" class="nav-link active" data-target="home">Inicio</a></li>
+                <li><a href="#" onclick="MapsTo('about')" class="nav-link" data-target="about">Sobre Nosotros</a></li>
+                <li><a href="#" onclick="MapsTo('dashboard')" class="nav-link" data-target="dashboard">Mis
+                        Herramientas</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-actions">
+            <button id="theme-toggle" class="icon-btn" aria-label="Cambiar tema">
+                <i class='bx bx-moon'></i>
+            </button>
+            <button id="login-btn-header" onclick="MapsTo('dashboard')" class="btn-primary">Iniciar Sesión</button>
+            <div id="user-profile" class="hidden">
+                <span id="user-email"></span>
+                <button id="logout-btn" class="icon-btn" aria-label="Cerrar sesión">
+                    <i class='bx bx-log-out'></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-container">
+
+        <!-- SECTION: Inicio -->
+        <section id="home" class="view active">
+            <div class="hero">
+                <div class="hero-content">
+                    <span class="badge">v1.0.0 Public Beta</span>
+                    <h1>Organiza tu <span class="gradient-text">Stack Tecnológico</span> sin fricción.</h1>
+                    <p>La herramienta definitiva para desarrolladores que necesitan tener sus recursos, librerías y
+                        utilidades siempre a mano. Simple, rápida y sincronizada.</p>
+                    <div class="cta-group">
+                        <button onclick="MapsTo('dashboard')" class="btn-primary btn-lg">Empezar Ahora <i
+                                class='bx bx-right-arrow-alt'></i></button>
+                        <a href="https://github.com/carlitic" target="_blank" class="btn-secondary btn-lg"><i
+                                class='bx bxl-github'></i> GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Sobre Nosotros -->
+        <section id="about" class="view">
+            <div class="content-wrapper">
+                <h2>Sobre Nosotros</h2>
+                <div class="about-card glass">
+                    <div class="about-header">
+                        <i class='bx bx-target-lock'
+                            style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
+                        <h3>Objetivo del Proyecto</h3>
+                        <br>
+                    </div>
+
+                    <p><strong>stack-tools</strong> ha sido diseñada con un propósito claro: <strong>centralizar y
+                            organizar</strong> el ecosistema de herramientas que todo desarrollador utiliza a diario.
+                    </p>
+
+                    <p style="margin-top: 15px;">En la vorágine del desarrollo moderno, perdemos demasiado tiempo
+                        buscando documentación, librerías, validadores o conversores que "sabemos que existen pero no
+                        recordamos dónde". Esta aplicación actúa como tu <strong>navaja suiza digital</strong>,
+                        permitiéndote:</p>
+
+                    <ul
+                        style="text-align: left; margin: 20px auto; max-width: 500px; list-style: disc; padding-left: 20px; color: var(--text-secondary);">
+                        <li>Guardar tus recursos favoritos por categorías.</li>
+                        <li>Acceder a ellos instantáneamente desde cualquier dispositivo.</li>
+                        <li>Compartir tu "stack" con otros desarrolladores o estudiantes.</li>
+                    </ul>
+
+                    <p>Este proyecto representa la culminación práctica de los conocimientos adquiridos en el ciclo de
+                        <strong>Desarrollo de Aplicaciones Web (DAW)</strong>, implementando arquitecturas SPA modernas
+                        sin frameworks pesados.</p>
+
+                    <div class="credits">
+                        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.8;">Diseñado y Desarrollado por</p>
+                        <h3 style="color: var(--text-color);">Carlos Javier Castaños Blanco</h3>
+                        <div class="social-links">
+                            <a href="https://github.com/carlitic" target="_blank" class="social-link"><i
+                                    class='bx bxl-github'></i></a>
+                            <a href="https://linkedin.com/in/carlos-castaños-blanco" target="_blank" class="social-link"><i class='bx bxl-linkedin'></i></a>
+                            <a href="mailto:castanosblanco@gmail.com" target="_blank" class="social-link"><i class='bx bx-envelope'></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Mis Herramientas (Dashboard + Auth) -->
+        <section id="dashboard" class="view">
+
+            <!-- Auth Container (Flip Card) -->
+            <div id="auth-container" class="auth-wrapper">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+
+                        <!-- Front: Login -->
+                        <div class="flip-card-front glass">
+                            <div class="auth-header">
+                                <h2>Bienvenido</h2>
+                                <br>
+                                <p>Accede a tu espacio de trabajo</p>
+                            </div>
+                            <form id="login-form">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="login-email" placeholder="dev@example.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Contraseña</label>
+                                    <input type="password" id="login-password" placeholder="••••••••" required>
+                                </div>
+                                <button type="submit" class="btn-primary full-width">Entrar</button>
+                            </form>
+                            <div class="auth-footer">
+                                <p>¿No tienes cuenta? <a href="#" id="go-to-register">Regístrate aquí</a></p>
+                            </div>
+                        </div>
+
+                        <!-- Back: Register -->
+                        <div class="flip-card-back glass">
+                            <div class="auth-header">
+                                <h2>Crear Cuenta</h2>
+                                <br>
+                                <p>Únete a Stack-Tools</p>
+                            </div>
+                            <form id="register-form">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="register-email" placeholder="dev@example.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Contraseña</label>
+                                    <input type="password" id="register-password" placeholder="Mínimo 6 caracteres"
+                                        required>
+                                </div>
+                                <button type="submit" class="btn-primary full-width">Registrarse</button>
+                            </form>
+                            <div class="auth-footer">
+                                <p>¿Ya tienes cuenta? <a href="#" id="go-to-login">Inicia sesión</a></p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content (Hidden by default) -->
+            <div id="dashboard-content" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dash-title">
+                        <h2>Mis Herramientas</h2>
+                        <span id="tools-count" class="badge">0 items</span>
+                    </div>
+                    <div class="dash-actions">
+                        <button id="export-pdf" class="btn-secondary"><i class='bx bxs-file-pdf'></i> Exportar
+                            PDF</button>
+                        <button id="add-tool-btn" class="btn-primary"><i class='bx bx-plus'></i> Nueva
+                            Herramienta</button>
+                    </div>
+                </div>
+
+                <!-- Tools Grid -->
+                <div id="tools-grid" class="grid-container">
+                    <!-- Cards will be injected here via JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state hidden">
+                    <i class='bx bx-layer'></i>
+                    <h3>Aún no hay herramientas</h3>
+                    <p>Añade tu primera herramienta para empezar a organizar tu stack.</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal: Add Tool -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal glass">
+            <div class="modal-header">
+                <h3>Nueva Herramienta</h3>
+                <button id="close-modal" class="icon-btn"><i class='bx bx-x'></i></button>
+            </div>
+            <form id="add-tool-form">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="tool-name" placeholder="Ej: React Docs" required>
+                </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="tool-url" placeholder="https://react.dev" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="tool-category">
+                        <option value="Frontend">Frontend</option>
+                        <option value="Backend">Backend</option>
+                        <option value="DevOps">DevOps</option>
+                        <option value="Design">Diseño/UI</option>
+                        <option value="Utils">Utilidades</option>
+                        <option value="Learning">Aprendizaje</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancel-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
