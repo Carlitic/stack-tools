@@ -83,8 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeMobileNavBtn = document.getElementById('close-mobile-nav');
 
     // --- Configuración Supabase ---
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';
+    const SUPABASE_URL = 'https://nifpxepjxxglgaasnynn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_dUEzt76F3ssVVPsHAhmorg_E-xKtThg';
 
     window.supabaseClient = null; // Global reference
 
