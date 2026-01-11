@@ -305,10 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchTools() {
         if (!window.supabaseClient) return; // demo handled in login
-        const { data, error } = await window.supabaseClient.from('tools').select('*').eq('user_id', currentUser.id);
+        const { data, error } = await window.supabaseClient.from('tools').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
         if (!error) {
             currentTools = data;
-            renderTools();
+            renderTools(); // Render all initial
         }
     }
 
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data, error } = await window.supabaseClient.from('tools').select('*').eq('user_id', uid);
         if (!error) {
             currentTools = data;
-            renderTools(true);
+            renderTools(currentTools, true);
         }
     }
 
@@ -409,7 +409,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Old handleAddCategory removed as replaced by form logic above
     async function handleAddCategory() { /* Replaced */ }
 
-    // --- Tool Logic ---
+    // --- Search Logic ---
+    const searchInput = document.getElementById('search-tools');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = currentTools.filter(t =>
+                t.name.toLowerCase().includes(term) ||
+                t.category.toLowerCase().includes(term) ||
+                (t.url && t.url.toLowerCase().includes(term))
+            );
+            renderTools(filtered);
+        });
+    }
 
     // --- Tool Logic ---
 
@@ -438,22 +450,29 @@ document.addEventListener('DOMContentLoaded', () => {
         let error;
         if (id) {
             // EDIT
-            ({ error } = await window.supabaseClient
+            // IMPORTANT: Ensure ID is treated correctly and user_id matches
+            const { error: updateError } = await window.supabaseClient
                 .from('tools')
                 .update({ name, url, category })
                 .eq('id', id)
-                .eq('user_id', currentUser.id));
+                .select(); // .select() helps verify the update happened
+
+            error = updateError;
         } else {
             // CREATE
-            ({ error } = await window.supabaseClient
+            const { error: insertError } = await window.supabaseClient
                 .from('tools')
-                .insert([{ name, url, category, user_id: currentUser.id }]));
+                .insert([{ name, url, category, user_id: currentUser.id }]);
+
+            error = insertError;
         }
 
-        if (error) alert(error.message);
+        if (error) alert("Error: " + error.message);
         else {
             closeModal();
-            fetchTools();
+            fetchTools(); // This will reset list, so search should probably be cleared or re-applied? 
+            // For now, simpler to just fetch all.
+            if (searchInput) searchInput.value = '';
         }
     }
 
@@ -479,21 +498,21 @@ document.addEventListener('DOMContentLoaded', () => {
         else alert(error.message);
     };
 
-    function renderTools(readOnly = false) {
+    function renderTools(toolsToRender = currentTools, readOnly = false) {
         const grid = document.getElementById('tools-grid');
         const count = document.getElementById('tools-count');
         const empty = document.getElementById('empty-state');
 
         if (grid) grid.innerHTML = '';
-        if (count) count.textContent = `${currentTools.length} items`;
+        if (count) count.textContent = `${toolsToRender.length} items`;
 
-        if (currentTools.length === 0) {
+        if (toolsToRender.length === 0) {
             if (empty) empty.classList.remove('hidden');
             return;
         }
         if (empty) empty.classList.add('hidden');
 
-        currentTools.forEach(tool => {
+        toolsToRender.forEach(tool => {
             const card = document.createElement('div');
             card.className = 'tool-card glass';
 
