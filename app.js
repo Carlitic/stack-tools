@@ -513,7 +513,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         if (!currentUser) return;
 
-        const id = document.getElementById('tool-id').value;
+        const id = document.getElementById('tool-id').value.trim(); // Trim whitespace!
+        console.log("AddTool called. ID:", id, "Type:", typeof id);
+        console.log("Current User:", currentUser.id);
         const name = document.getElementById('tool-name').value;
         const url = document.getElementById('tool-url').value;
         const category = document.getElementById('tool-category').value;
@@ -540,11 +542,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // EDIT
             // Include user_id in update just in case RLS checks it, though usually not needed.
             // Check if rows matched specific ID and user_id via filter
+            console.log("Attempting update for ID:", id);
             const { data: updatedData, error: updateError } = await window.supabaseClient
                 .from('tools')
                 .update({ name, url, category })
                 .eq('id', id)
                 .select();
+
+            console.log("Update Result:", updatedData, updateError);
 
             error = updateError;
             data = updatedData;
