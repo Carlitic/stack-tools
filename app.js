@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const flipCard = document.querySelector('.flip-card');
     const goToRegister = document.getElementById('go-to-register');
     const goToLogin = document.getElementById('go-to-login');
-    const goToLogin = document.getElementById('go-to-login');
+
 
     const exportBtn = document.getElementById('export-pdf');
 
