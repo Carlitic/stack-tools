@@ -89,6 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
     const closeMobileNavBtn = document.getElementById('close-mobile-nav');
 
+    // Category Modal Elements
+    const categoryOverlay = document.getElementById('modal-category-overlay');
+    const categoryForm = document.getElementById('add-category-form');
+    const closeCategoryBtn = document.getElementById('close-category-modal');
+    const cancelCategoryBtn = document.getElementById('cancel-category-modal');
+    const addCategoryBtn = document.getElementById('add-category-btn');
+
     // --- Configuración Supabase ---
     const SUPABASE_URL = 'https://nifpxepjxxglgaasnynn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_dUEzt76F3ssVVPsHAhmorg_E-xKtThg';
@@ -386,10 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Category Modal Logic ---
-    const categoryOverlay = document.getElementById('modal-category-overlay');
-    const categoryForm = document.getElementById('add-category-form');
-    const closeCategoryBtn = document.getElementById('close-category-modal');
-    const cancelCategoryBtn = document.getElementById('cancel-category-modal');
+    // Variables moved to top
 
     function openCategoryModal() {
         if (categoryOverlay) {
@@ -407,10 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cancelCategoryBtn) cancelCategoryBtn.addEventListener('click', closeCategoryModal);
 
     // Initial listener for the (+) button
-    const addCategoryBtn = document.getElementById('add-category-btn');
     if (addCategoryBtn) {
-        addCategoryBtn.removeEventListener('click', handleAddCategory); // Remove old listener if exists
-        addCategoryBtn.addEventListener('click', openCategoryModal);
+        // Direct assignment to onclick to avoid any removeListener complexity
+        addCategoryBtn.onclick = function (e) {
+            e.preventDefault(); // Just in case
+            openCategoryModal();
+        };
     }
 
     // Handle Form Submit
