@@ -75,7 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const flipCard = document.querySelector('.flip-card');
     const goToRegister = document.getElementById('go-to-register');
     const goToLogin = document.getElementById('go-to-login');
+    const goToLogin = document.getElementById('go-to-login');
     const exportBtn = document.getElementById('export-pdf');
+
+    // Delete Modal Elements (Moved up to avoid ReferenceError)
+    const deleteOverlay = document.getElementById('modal-delete-overlay');
+    const confirmDeleteBtn = document.getElementById('confirm-delete');
+    const cancelDeleteBtn = document.getElementById('cancel-delete');
 
     // Mobile Nav Elements
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -522,9 +528,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Delete Modal Logic ---
         let toolToDelete = null;
-        const deleteOverlay = document.getElementById('modal-delete-overlay');
-        const confirmDeleteBtn = document.getElementById('confirm-delete');
-        const cancelDeleteBtn = document.getElementById('cancel-delete');
 
         function openDeleteModal(id) {
             toolToDelete = id;
