@@ -228,10 +228,11 @@
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal glass">
             <div class="modal-header">
-                <h3>Nueva Herramienta</h3>
+                <h3 id="modal-title">Nueva Herramienta</h3>
                 <button id="close-modal" class="icon-btn"><i class='bx bx-x'></i></button>
             </div>
             <form id="add-tool-form">
+                <input type="hidden" id="tool-id"> <!-- Hidden ID for editing -->
                 <div class="form-group">
                     <label>Nombre</label>
                     <input type="text" id="tool-name" placeholder="Ej: React Docs" required>
@@ -242,14 +243,14 @@
                 </div>
                 <div class="form-group">
                     <label>Categoría</label>
-                    <select id="tool-category">
-                        <option value="Frontend">Frontend</option>
-                        <option value="Backend">Backend</option>
-                        <option value="DevOps">DevOps</option>
-                        <option value="Design">Diseño/UI</option>
-                        <option value="Utils">Utilidades</option>
-                        <option value="Learning">Aprendizaje</option>
-                    </select>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="tool-category" style="flex: 1;" required>
+                            <option value="" disabled selected>Cargando categorías...</option>
+                        </select>
+                        <button type="button" id="add-category-btn" class="btn-secondary" title="Nueva Categoría">
+                            <i class='bx bx-plus'></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="cancel-modal" class="btn-secondary">Cancelar</button>

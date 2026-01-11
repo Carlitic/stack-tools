@@ -110,10 +110,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (registerForm) registerForm.addEventListener('submit', (e) => handleRegister(e));
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
-    if (addToolBtn) addToolBtn.addEventListener('click', openModal);
+    if (addToolBtn) addToolBtn.addEventListener('click', () => openModal());
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
     if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
     if (addToolForm) addToolForm.addEventListener('submit', (e) => addTool(e));
+
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    if (addCategoryBtn) addCategoryBtn.addEventListener('click', handleAddCategory);
 
     if (modalOverlay) {
         modalOverlay.addEventListener('click', (e) => {
@@ -322,31 +325,105 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Category Logic ---
+    async function fetchCategories() {
+        if (!window.supabaseClient) return ['Frontend', 'Backend', 'DevOps', 'Design', 'Utils', 'Learning'];
+
+        const { data, error } = await window.supabaseClient
+            .from('categories')
+            .select('name')
+            .order('name');
+
+        if (error) {
+            console.error(error);
+            return [];
+        }
+        return data.map(c => c.name);
+    }
+
+    async function updateCategoryDropdown() {
+        const select = document.getElementById('tool-category');
+        select.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+
+        const categories = await fetchCategories();
+        select.innerHTML = categories.length
+            ? categories.map(c => `<option value="${c}">${c}</option>`).join('')
+            : '<option value="" disabled>No hay categorías</option>';
+
+        // Restore selection if needed or select first
+        if (categories.length) select.value = categories[0];
+    }
+
+    async function handleAddCategory() {
+        if (!window.supabaseClient) {
+            alert("Modo Demo: No se pueden crear categorías.");
+            return;
+        }
+        const newCat = prompt("Nombre de la nueva categoría:");
+        if (!newCat || !newCat.trim()) return;
+
+        const { error } = await window.supabaseClient.from('categories').insert([{ name: newCat.trim(), user_id: currentUser.id }]);
+
+        if (error) alert("Error al crear categoría: " + error.message);
+        else {
+            await updateCategoryDropdown();
+            // Select the new category
+            document.getElementById('tool-category').value = newCat.trim();
+        }
+    }
+
+    // --- Tool Logic ---
+
     async function addTool(e) {
         e.preventDefault();
         if (!currentUser) return;
 
+        const id = document.getElementById('tool-id').value;
         const name = document.getElementById('tool-name').value;
         const url = document.getElementById('tool-url').value;
         const category = document.getElementById('tool-category').value;
 
         if (!window.supabaseClient) {
-            // Demo Add
-            currentTools.unshift({ id: Date.now(), name, url, category });
+            // Demo Add/Edit
+            if (id) {
+                const idx = currentTools.findIndex(t => t.id == id);
+                if (idx !== -1) currentTools[idx] = { ...currentTools[idx], name, url, category };
+            } else {
+                currentTools.unshift({ id: Date.now(), name, url, category });
+            }
             renderTools();
             closeModal();
-            addToolForm.reset();
             return;
         }
 
-        const { error } = await window.supabaseClient.from('tools').insert([{ name, url, category, user_id: currentUser.id }]);
+        let error;
+        if (id) {
+            // EDIT
+            ({ error } = await window.supabaseClient
+                .from('tools')
+                .update({ name, url, category })
+                .eq('id', id)
+                .eq('user_id', currentUser.id));
+        } else {
+            // CREATE
+            ({ error } = await window.supabaseClient
+                .from('tools')
+                .insert([{ name, url, category, user_id: currentUser.id }]));
+        }
+
         if (error) alert(error.message);
         else {
             closeModal();
-            addToolForm.reset();
             fetchTools();
         }
     }
+
+    window.editTool = function (id) {
+        const tool = currentTools.find(t => t.id == id);
+        if (!tool) return;
+
+        openModal(tool);
+    };
 
     // Expose delete to global scope for onclick in HTML string
     window.deleteTool = async function (id) {
@@ -398,8 +475,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${!readOnly ? `
                 <div class="tool-footer">
-                    <button onclick="deleteTool(${tool.id})" class="icon-btn delete-btn"><i class='bx bx-trash'></i></button>
-                    <a href="${tool.url}" target="_blank" class="icon-btn"><i class='bx bx-link-external'></i></a>
+                    <button onclick="editTool(${tool.id})" class="icon-btn edit-btn" title="Editar"><i class='bx bx-pencil'></i></button>
+                    <button onclick="deleteTool(${tool.id})" class="icon-btn delete-btn" title="Eliminar"><i class='bx bx-trash'></i></button>
+                    <a href="${tool.url}" target="_blank" class="icon-btn" title="Abrir"><i class='bx bx-link-external'></i></a>
                 </div>` : ''}
             `;
             grid.appendChild(card);
@@ -407,8 +485,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Modals ---
-    function openModal() { if (modalOverlay) modalOverlay.classList.remove('hidden'); }
-    function closeModal() { if (modalOverlay) modalOverlay.classList.add('hidden'); }
+    // --- Modals ---
+    async function openModal(toolToEdit = null) {
+        if (modalOverlay) modalOverlay.classList.remove('hidden');
+
+        // Refresh categories whenever modal opens
+        await updateCategoryDropdown();
+
+        const title = document.getElementById('modal-title');
+        const form = document.getElementById('add-tool-form');
+
+        if (toolToEdit && toolToEdit.id) {
+            // EDIT MODE
+            if (title) title.textContent = "Editar Herramienta";
+            document.getElementById('tool-id').value = toolToEdit.id;
+            document.getElementById('tool-name').value = toolToEdit.name;
+            document.getElementById('tool-url').value = toolToEdit.url;
+            // Wait for dropdown to update then set value? 
+            // updateCategoryDropdown is awaited, so secure.
+            document.getElementById('tool-category').value = toolToEdit.category;
+        } else {
+            // ADD MODE
+            if (title) title.textContent = "Nueva Herramienta";
+            form.reset();
+            document.getElementById('tool-id').value = '';
+        }
+    }
+
+    function closeModal() {
+        if (modalOverlay) modalOverlay.classList.add('hidden');
+        document.getElementById('add-tool-form').reset();
+    }
 
     function exportPDF() {
         const el = document.getElementById('tools-grid');
