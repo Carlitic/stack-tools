@@ -224,6 +224,26 @@
 
     </main>
 
+    <!-- Modal: Add Category -->
+    <div id="modal-category-overlay" class="modal-overlay hidden">
+        <div class="modal glass" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Nueva Categoría</h3>
+                <button id="close-category-modal" class="icon-btn"><i class='bx bx-x'></i></button>
+            </div>
+            <form id="add-category-form">
+                <div class="form-group">
+                    <label>Nombre de la Categoría</label>
+                    <input type="text" id="new-category-name" placeholder="Ej: AI Tools" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancel-category-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Add Tool -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal glass">

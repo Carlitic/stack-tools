@@ -115,8 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
     if (addToolForm) addToolForm.addEventListener('submit', (e) => addTool(e));
 
-    const addCategoryBtn = document.getElementById('add-category-btn');
-    if (addCategoryBtn) addCategoryBtn.addEventListener('click', handleAddCategory);
+
 
     if (modalOverlay) {
         modalOverlay.addEventListener('click', (e) => {
@@ -354,23 +353,63 @@ document.addEventListener('DOMContentLoaded', () => {
         if (categories.length) select.value = categories[0];
     }
 
-    async function handleAddCategory() {
-        if (!window.supabaseClient) {
-            alert("Modo Demo: No se pueden crear categorías.");
-            return;
-        }
-        const newCat = prompt("Nombre de la nueva categoría:");
-        if (!newCat || !newCat.trim()) return;
+    // --- Category Modal Logic ---
+    const categoryOverlay = document.getElementById('modal-category-overlay');
+    const categoryForm = document.getElementById('add-category-form');
+    const closeCategoryBtn = document.getElementById('close-category-modal');
+    const cancelCategoryBtn = document.getElementById('cancel-category-modal');
 
-        const { error } = await window.supabaseClient.from('categories').insert([{ name: newCat.trim(), user_id: currentUser.id }]);
-
-        if (error) alert("Error al crear categoría: " + error.message);
-        else {
-            await updateCategoryDropdown();
-            // Select the new category
-            document.getElementById('tool-category').value = newCat.trim();
+    function openCategoryModal() {
+        if (categoryOverlay) {
+            categoryOverlay.classList.remove('hidden');
+            setTimeout(() => document.getElementById('new-category-name').focus(), 100);
         }
     }
+
+    function closeCategoryModal() {
+        if (categoryOverlay) categoryOverlay.classList.add('hidden');
+        if (categoryForm) categoryForm.reset();
+    }
+
+    if (closeCategoryBtn) closeCategoryBtn.addEventListener('click', closeCategoryModal);
+    if (cancelCategoryBtn) cancelCategoryBtn.addEventListener('click', closeCategoryModal);
+
+    // Initial listener for the (+) button
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    if (addCategoryBtn) {
+        addCategoryBtn.removeEventListener('click', handleAddCategory); // Remove old listener if exists
+        addCategoryBtn.addEventListener('click', openCategoryModal);
+    }
+
+    // Handle Form Submit
+    if (categoryForm) {
+        categoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-category-name');
+            const newCat = nameInput.value;
+
+            if (!newCat || !newCat.trim()) return;
+
+            if (!window.supabaseClient) {
+                alert("Modo Demo: No se pueden crear categorías.");
+                return;
+            }
+
+            const { error } = await window.supabaseClient.from('categories').insert([{ name: newCat.trim(), user_id: currentUser.id }]);
+
+            if (error) alert("Error al crear categoría: " + error.message);
+            else {
+                await updateCategoryDropdown();
+                document.getElementById('tool-category').value = newCat.trim();
+                closeCategoryModal();
+            }
+        });
+    }
+
+    // Old handleAddCategory removed as replaced by form logic above
+    async function handleAddCategory() { /* Replaced */ }
+
+    // --- Tool Logic ---
 
     // --- Tool Logic ---
 
