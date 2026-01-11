@@ -852,3 +852,9 @@ h3 {
         transform: translateY(10px);
     }
 }
+
+/* Fix for Nested Modals */
+#modal-category-overlay {
+    z-index: 2000 !important;
+    /* Higher than generic modal-overlay */
+}
