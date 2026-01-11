@@ -252,6 +252,21 @@
         </div>
     </div>
 
+    <!-- Modal: Delete Confirmation -->
+    <div id="modal-delete-overlay" class="modal-overlay hidden">
+        <div class="modal glass" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3>¿Eliminar herramienta?</h3>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Esta acción no se puede deshacer.</p>
+            <div class="modal-footer" style="justify-content: center; gap: 20px;">
+                <button type="button" id="cancel-delete" class="btn-secondary">Cancelar</button>
+                <button type="button" id="confirm-delete" class="btn-primary"
+                    style="background-color: var(--danger-color);">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Add Tool -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal glass">

@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalOverlay) {
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
+            if (deleteOverlay && e.target === deleteOverlay) closeDeleteModal();
         });
     }
 
@@ -399,8 +400,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) alert("Error al crear categoría: " + error.message);
             else {
+                // Refresh dropdown
                 await updateCategoryDropdown();
-                document.getElementById('tool-category').value = newCat.trim();
+
+                // Explicitly set the value on the select element inside the OTHER modal
+                const catSelect = document.getElementById('tool-category');
+                if (catSelect) catSelect.value = newCat.trim();
+
                 closeCategoryModal();
             }
         });
@@ -476,6 +482,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Delete Modal Logic ---
+    let toolToDelete = null;
+    const deleteOverlay = document.getElementById('modal-delete-overlay');
+    const confirmDeleteBtn = document.getElementById('confirm-delete');
+    const cancelDeleteBtn = document.getElementById('cancel-delete');
+
+    function openDeleteModal(id) {
+        toolToDelete = id;
+        if (deleteOverlay) deleteOverlay.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        toolToDelete = null;
+        if (deleteOverlay) deleteOverlay.classList.add('hidden');
+    }
+
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!toolToDelete) return;
+
+            if (!window.supabaseClient) {
+                // Demo
+                currentTools = currentTools.filter(t => t.id !== toolToDelete);
+                renderTools();
+                closeDeleteModal();
+                return;
+            }
+
+            const { error } = await window.supabaseClient.from('tools').delete().eq('id', toolToDelete);
+            if (!error) {
+                fetchTools();
+                closeDeleteModal();
+            } else {
+                alert(error.message);
+                closeDeleteModal();
+            }
+        });
+    }
+
+
     window.editTool = function (id) {
         const tool = currentTools.find(t => t.id == id);
         if (!tool) return;
@@ -484,18 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Expose delete to global scope for onclick in HTML string
-    window.deleteTool = async function (id) {
-        if (!confirm("¿Eliminar herramienta?")) return;
-
-        if (!window.supabaseClient) {
-            currentTools = currentTools.filter(t => t.id !== id);
-            renderTools();
-            return;
-        }
-
-        const { error } = await window.supabaseClient.from('tools').delete().eq('id', id);
-        if (!error) fetchTools();
-        else alert(error.message);
+    window.deleteTool = function (id) {
+        openDeleteModal(id);
     };
 
     function renderTools(toolsToRender = currentTools, readOnly = false) {
