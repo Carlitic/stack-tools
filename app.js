@@ -604,7 +604,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const { error } = await window.supabaseClient.from('tools').delete().eq('id', toolToDelete);
+            console.log("Delete confirmed for ID:", toolToDelete);
+
+            // Safe trim if it's a string
+            const idToDelete = (typeof toolToDelete === 'string') ? toolToDelete.trim() : toolToDelete;
+
+            const { error } = await window.supabaseClient.from('tools').delete().eq('id', idToDelete);
             if (!error) {
                 showToast("Eliminado correctamente", "success");
                 fetchTools();
