@@ -398,8 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const { error } = await window.supabaseClient.from('categories').insert([{ name: newCat.trim(), user_id: currentUser.id }]);
 
-            if (error) alert("Error al crear categoría: " + error.message);
+            if (error) showToast("Error al crear categoría: " + error.message, "error");
             else {
+                showToast("Categoría creada", "success");
                 // Refresh dropdown
                 await updateCategoryDropdown();
 
@@ -410,155 +411,193 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeCategoryModal();
             }
         });
-    }
+        // Old handleAddCategory removed as replaced by form logic above
+        async function handleAddCategory() { /* Replaced */ }
 
-    // Old handleAddCategory removed as replaced by form logic above
-    async function handleAddCategory() { /* Replaced */ }
-
-    // --- Search Logic ---
-    const searchInput = document.getElementById('search-tools');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = currentTools.filter(t =>
-                t.name.toLowerCase().includes(term) ||
-                t.category.toLowerCase().includes(term) ||
-                (t.url && t.url.toLowerCase().includes(term))
-            );
-            renderTools(filtered);
-        });
-    }
-
-    // --- Tool Logic ---
-
-    async function addTool(e) {
-        e.preventDefault();
-        if (!currentUser) return;
-
-        const id = document.getElementById('tool-id').value;
-        const name = document.getElementById('tool-name').value;
-        const url = document.getElementById('tool-url').value;
-        const category = document.getElementById('tool-category').value;
-
-        if (!window.supabaseClient) {
-            // Demo Add/Edit
-            if (id) {
-                const idx = currentTools.findIndex(t => t.id == id);
-                if (idx !== -1) currentTools[idx] = { ...currentTools[idx], name, url, category };
-            } else {
-                currentTools.unshift({ id: Date.now(), name, url, category });
+        // --- Toast Logic ---
+        function showToast(message, type = 'info') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
             }
-            renderTools();
-            closeModal();
-            return;
+
+            const iconMap = {
+                success: 'bx-check-circle',
+                error: 'bx-error',
+                info: 'bx-info-circle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class='bx ${iconMap[type]}'></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutToast 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
         }
 
-        let error;
-        if (id) {
-            // EDIT
-            // IMPORTANT: Ensure ID is treated correctly and user_id matches
-            const { error: updateError } = await window.supabaseClient
-                .from('tools')
-                .update({ name, url, category })
-                .eq('id', id)
-                .select(); // .select() helps verify the update happened
-
-            error = updateError;
-        } else {
-            // CREATE
-            const { error: insertError } = await window.supabaseClient
-                .from('tools')
-                .insert([{ name, url, category, user_id: currentUser.id }]);
-
-            error = insertError;
+        // --- Search Logic ---
+        const searchInput = document.getElementById('search-tools');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = currentTools.filter(t =>
+                    t.name.toLowerCase().includes(term) ||
+                    t.category.toLowerCase().includes(term) ||
+                    (t.url && t.url.toLowerCase().includes(term))
+                );
+                renderTools(filtered);
+            });
         }
 
-        if (error) alert("Error: " + error.message);
-        else {
-            closeModal();
-            fetchTools(); // This will reset list, so search should probably be cleared or re-applied? 
-            // For now, simpler to just fetch all.
-            if (searchInput) searchInput.value = '';
-        }
-    }
+        // --- Tool Logic ---
 
-    // --- Delete Modal Logic ---
-    let toolToDelete = null;
-    const deleteOverlay = document.getElementById('modal-delete-overlay');
-    const confirmDeleteBtn = document.getElementById('confirm-delete');
-    const cancelDeleteBtn = document.getElementById('cancel-delete');
+        async function addTool(e) {
+            e.preventDefault();
+            if (!currentUser) return;
 
-    function openDeleteModal(id) {
-        toolToDelete = id;
-        if (deleteOverlay) deleteOverlay.classList.remove('hidden');
-    }
-
-    function closeDeleteModal() {
-        toolToDelete = null;
-        if (deleteOverlay) deleteOverlay.classList.add('hidden');
-    }
-
-    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', async () => {
-            if (!toolToDelete) return;
+            const id = document.getElementById('tool-id').value;
+            const name = document.getElementById('tool-name').value;
+            const url = document.getElementById('tool-url').value;
+            const category = document.getElementById('tool-category').value;
 
             if (!window.supabaseClient) {
-                // Demo
-                currentTools = currentTools.filter(t => t.id !== toolToDelete);
+                // Demo Add/Edit
+                if (id) {
+                    const idx = currentTools.findIndex(t => t.id == id);
+                    if (idx !== -1) currentTools[idx] = { ...currentTools[idx], name, url, category };
+                    showToast("Herramienta actualizada (Demo)", "success");
+                } else {
+                    currentTools.unshift({ id: Date.now(), name, url, category });
+                    showToast("Herramienta creada (Demo)", "success");
+                }
                 renderTools();
-                closeDeleteModal();
+                closeModal();
                 return;
             }
 
-            const { error } = await window.supabaseClient.from('tools').delete().eq('id', toolToDelete);
-            if (!error) {
-                fetchTools();
-                closeDeleteModal();
+            let error;
+            let data = null;
+
+            if (id) {
+                // EDIT
+                // Include user_id in update just in case RLS checks it, though usually not needed.
+                // Check if rows matched specific ID and user_id via filter
+                const { data: updatedData, error: updateError } = await window.supabaseClient
+                    .from('tools')
+                    .update({ name, url, category })
+                    .eq('id', id)
+                    .select();
+
+                error = updateError;
+                data = updatedData;
+
+                if (!error && (!data || data.length === 0)) {
+                    showToast("No se pudo actualizar. ¿Tal vez no es tuya?", "error");
+                    return;
+                }
             } else {
-                alert(error.message);
-                closeDeleteModal();
+                // CREATE
+                const { error: insertError } = await window.supabaseClient
+                    .from('tools')
+                    .insert([{ name, url, category, user_id: currentUser.id }]);
+
+                error = insertError;
             }
-        });
-    }
 
-
-    window.editTool = function (id) {
-        const tool = currentTools.find(t => t.id == id);
-        if (!tool) return;
-
-        openModal(tool);
-    };
-
-    // Expose delete to global scope for onclick in HTML string
-    window.deleteTool = function (id) {
-        openDeleteModal(id);
-    };
-
-    function renderTools(toolsToRender = currentTools, readOnly = false) {
-        const grid = document.getElementById('tools-grid');
-        const count = document.getElementById('tools-count');
-        const empty = document.getElementById('empty-state');
-
-        if (grid) grid.innerHTML = '';
-        if (count) count.textContent = `${toolsToRender.length} items`;
-
-        if (toolsToRender.length === 0) {
-            if (empty) empty.classList.remove('hidden');
-            return;
+            if (error) {
+                showToast("Error: " + error.message, "error");
+            } else {
+                showToast(id ? "Cambios guardados correctamente" : "Herramienta añadida éxito", "success");
+                closeModal();
+                fetchTools();
+                if (searchInput) searchInput.value = '';
+            }
         }
-        if (empty) empty.classList.add('hidden');
 
-        toolsToRender.forEach(tool => {
-            const card = document.createElement('div');
-            card.className = 'tool-card glass';
+        // --- Delete Modal Logic ---
+        let toolToDelete = null;
+        const deleteOverlay = document.getElementById('modal-delete-overlay');
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
 
-            // Safe favicon
-            let fav = 'https://unpkg.com/boxicons@2.1.4/svg/regular/bx-globe.svg';
-            try { fav = `https://www.google.com/s2/favicons?domain=${new URL(tool.url).hostname}&sz=64`; } catch (e) { }
+        function openDeleteModal(id) {
+            toolToDelete = id;
+            if (deleteOverlay) deleteOverlay.classList.remove('hidden');
+        }
 
-            card.innerHTML = `
+        function closeDeleteModal() {
+            toolToDelete = null;
+            if (deleteOverlay) deleteOverlay.classList.add('hidden');
+        }
+
+        if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', async () => {
+                if (!toolToDelete) return;
+
+                if (!window.supabaseClient) {
+                    // Demo
+                    currentTools = currentTools.filter(t => t.id !== toolToDelete);
+                    renderTools();
+                    closeDeleteModal();
+                    return;
+                }
+
+                const { error } = await window.supabaseClient.from('tools').delete().eq('id', toolToDelete);
+                if (!error) {
+                    showToast("Eliminado correctamente", "success");
+                    fetchTools();
+                    closeDeleteModal();
+                } else {
+                    showToast(error.message, "error");
+                    closeDeleteModal();
+                }
+            });
+        }
+
+
+        window.editTool = function (id) {
+            const tool = currentTools.find(t => t.id == id);
+            if (!tool) return;
+
+            openModal(tool);
+        };
+
+        // Expose delete to global scope for onclick in HTML string
+        window.deleteTool = function (id) {
+            openDeleteModal(id);
+        };
+
+        function renderTools(toolsToRender = currentTools, readOnly = false) {
+            const grid = document.getElementById('tools-grid');
+            const count = document.getElementById('tools-count');
+            const empty = document.getElementById('empty-state');
+
+            if (grid) grid.innerHTML = '';
+            if (count) count.textContent = `${toolsToRender.length} items`;
+
+            if (toolsToRender.length === 0) {
+                if (empty) empty.classList.remove('hidden');
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+
+            toolsToRender.forEach(tool => {
+                const card = document.createElement('div');
+                card.className = 'tool-card glass';
+
+                // Safe favicon
+                let fav = 'https://unpkg.com/boxicons@2.1.4/svg/regular/bx-globe.svg';
+                try { fav = `https://www.google.com/s2/favicons?domain=${new URL(tool.url).hostname}&sz=64`; } catch (e) { }
+
+                card.innerHTML = `
                 <div class="tool-content">
                     <div class="tool-header">
                         <div class="tool-info">
@@ -576,62 +615,62 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a href="${tool.url}" target="_blank" class="icon-btn" title="Abrir"><i class='bx bx-link-external'></i></a>
                 </div>` : ''}
             `;
-            grid.appendChild(card);
-        });
-    }
-
-    // --- Modals ---
-    // --- Modals ---
-    async function openModal(toolToEdit = null) {
-        if (modalOverlay) modalOverlay.classList.remove('hidden');
-
-        // Refresh categories whenever modal opens
-        await updateCategoryDropdown();
-
-        const title = document.getElementById('modal-title');
-        const form = document.getElementById('add-tool-form');
-
-        if (toolToEdit && toolToEdit.id) {
-            // EDIT MODE
-            if (title) title.textContent = "Editar Herramienta";
-            document.getElementById('tool-id').value = toolToEdit.id;
-            document.getElementById('tool-name').value = toolToEdit.name;
-            document.getElementById('tool-url').value = toolToEdit.url;
-            // Wait for dropdown to update then set value? 
-            // updateCategoryDropdown is awaited, so secure.
-            document.getElementById('tool-category').value = toolToEdit.category;
-        } else {
-            // ADD MODE
-            if (title) title.textContent = "Nueva Herramienta";
-            form.reset();
-            document.getElementById('tool-id').value = '';
+                grid.appendChild(card);
+            });
         }
-    }
 
-    function closeModal() {
-        if (modalOverlay) modalOverlay.classList.add('hidden');
-        document.getElementById('add-tool-form').reset();
-    }
+        // --- Modals ---
+        // --- Modals ---
+        async function openModal(toolToEdit = null) {
+            if (modalOverlay) modalOverlay.classList.remove('hidden');
 
-    function exportPDF() {
-        const el = document.getElementById('tools-grid');
-        if (typeof html2pdf !== 'undefined') {
-            html2pdf().set({ margin: 1, filename: 'stack-tools.pdf' }).from(el).save();
-        } else {
-            alert("Librería PDF no cargada.");
-        }
-    }
+            // Refresh categories whenever modal opens
+            await updateCategoryDropdown();
 
-    // --- Init Session Check ---
-    if (window.supabaseClient) {
-        window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                currentUser = session.user;
-                updateAuthUI();
-                const params = new URLSearchParams(window.location.search);
-                if (!params.get('user')) fetchTools();
+            const title = document.getElementById('modal-title');
+            const form = document.getElementById('add-tool-form');
+
+            if (toolToEdit && toolToEdit.id) {
+                // EDIT MODE
+                if (title) title.textContent = "Editar Herramienta";
+                document.getElementById('tool-id').value = toolToEdit.id;
+                document.getElementById('tool-name').value = toolToEdit.name;
+                document.getElementById('tool-url').value = toolToEdit.url;
+                // Wait for dropdown to update then set value? 
+                // updateCategoryDropdown is awaited, so secure.
+                document.getElementById('tool-category').value = toolToEdit.category;
+            } else {
+                // ADD MODE
+                if (title) title.textContent = "Nueva Herramienta";
+                form.reset();
+                document.getElementById('tool-id').value = '';
             }
-        });
-    }
+        }
 
-});
+        function closeModal() {
+            if (modalOverlay) modalOverlay.classList.add('hidden');
+            document.getElementById('add-tool-form').reset();
+        }
+
+        function exportPDF() {
+            const el = document.getElementById('tools-grid');
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set({ margin: 1, filename: 'stack-tools.pdf' }).from(el).save();
+            } else {
+                alert("Librería PDF no cargada.");
+            }
+        }
+
+        // --- Init Session Check ---
+        if (window.supabaseClient) {
+            window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    currentUser = session.user;
+                    updateAuthUI();
+                    const params = new URLSearchParams(window.location.search);
+                    if (!params.get('user')) fetchTools();
+                }
+            });
+        }
+
+    });
