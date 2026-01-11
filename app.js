@@ -551,13 +551,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log("Update Result:", updatedData, updateError);
 
-            error = updateError;
-            data = updatedData;
 
-            if (!error && (!data || data.length === 0)) {
-                showToast("No se pudo actualizar. ¿Tal vez no es tuya?", "error");
+            if (error) {
+                showToast("Error: " + error.message, "error");
                 return;
             }
+            // If no error, assume success (matching delete logic)
+
         } else {
             // CREATE
             const { error: insertError } = await window.supabaseClient
