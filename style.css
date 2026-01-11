@@ -777,76 +777,79 @@ h3 {
         /* 1 col en mobile */
     }
 
-    /* Toast Notification */
-    .toast-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 3000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+}
+
+/* Toast Notification */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    padding: 12px 20px;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    animation: slideInToast 0.3s ease forwards;
+    min-width: 250px;
+}
+
+.toast.success {
+    border-left: 4px solid var(--success-color);
+}
+
+.toast.error {
+    border-left: 4px solid var(--danger-color);
+}
+
+.toast.info {
+    border-left: 4px solid var(--accent-color);
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast.success i {
+    color: var(--success-color);
+}
+
+.toast.error i {
+    color: var(--danger-color);
+}
+
+.toast.info i {
+    color: var(--accent-color);
+}
+
+@keyframes slideInToast {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
     }
 
-    .toast {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        color: var(--text-color);
-        padding: 12px 20px;
-        border-radius: var(--border-radius-md);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.95rem;
-        animation: slideInToast 0.3s ease forwards;
-        min-width: 250px;
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
+}
 
-    .toast.success {
-        border-left: 4px solid var(--success-color);
+@keyframes fadeOutToast {
+    to {
+        opacity: 0;
+        transform: translateY(10px);
     }
-
-    .toast.error {
-        border-left: 4px solid var(--danger-color);
-    }
-
-    .toast.info {
-        border-left: 4px solid var(--accent-color);
-    }
-
-    .toast i {
-        font-size: 1.2rem;
-    }
-
-    .toast.success i {
-        color: var(--success-color);
-    }
-
-    .toast.error i {
-        color: var(--danger-color);
-    }
-
-    .toast.info i {
-        color: var(--accent-color);
-    }
-
-    @keyframes slideInToast {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes fadeOutToast {
-        to {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-    }
+}
+}
