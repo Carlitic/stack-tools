@@ -855,6 +855,6 @@ h3 {
 
 /* Fix for Nested Modals */
 #modal-category-overlay {
-    z-index: 2000 !important;
-    /* Higher than generic modal-overlay */
+    z-index: 3000 !important;
+    /* DISTINCTLY Higher than generic modal-overlay (2000) */
 }
