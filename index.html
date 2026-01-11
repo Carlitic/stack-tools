@@ -200,11 +200,15 @@
                         <span id="tools-count" class="badge">0 items</span>
                     </div>
 
-                    <div class="search-container" style="flex: 1; max-width: 400px; margin: 0 20px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <input type="text" id="search-tools" placeholder="🔍 Buscar por nombre, categoría o URL..."
-                                style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 20px;">
-                        </div>
+                    <div class="search-container"
+                        style="flex: 1; max-width: 500px; margin: 0 20px; display: flex; gap: 10px;">
+                        <input type="text" id="search-tools" placeholder="🔍 Buscar..."
+                            style="flex: 2; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 20px; color: var(--text-color);">
+
+                        <select id="filter-category"
+                            style="flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 5px 15px; border-radius: 20px; color: var(--text-color);">
+                            <option value="">Todas</option>
+                        </select>
                     </div>
 
                     <div class="dash-actions">

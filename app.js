@@ -361,15 +361,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateCategoryDropdown() {
         const select = document.getElementById('tool-category');
-        select.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+        const filterSelect = document.getElementById('filter-category');
+
+        // Base Options
+        const loadingOp = '<option value="" disabled selected>Cargando...</option>';
+        if (select) select.innerHTML = loadingOp;
+        if (filterSelect) filterSelect.innerHTML = '<option value="">Todas</option>' + loadingOp; // Keep 'Todas'
 
         const categories = await fetchCategories();
-        select.innerHTML = categories.length
+
+        const options = categories.length
             ? categories.map(c => `<option value="${c}">${c}</option>`).join('')
             : '<option value="" disabled>No hay categorías</option>';
 
-        // Restore selection if needed or select first
-        if (categories.length) select.value = categories[0];
+        if (select) {
+            select.innerHTML = options;
+            if (categories.length) select.value = categories[0];
+        }
+
+        if (filterSelect) {
+            // Keep "Todas" as first option always
+            filterSelect.innerHTML = `<option value="">Todas</option>${options}`;
+        }
     }
 
     // --- Category Modal Logic ---
@@ -453,25 +466,39 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.innerHTML = `<i class='bx ${iconMap[type]}'></i><span>${message}</span>`;
 
         container.appendChild(toast);
-
         setTimeout(() => {
             toast.style.animation = 'fadeOutToast 0.5s ease forwards';
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
 
-    // --- Search Logic ---
+    // --- Search & Filter Logic ---
     const searchInput = document.getElementById('search-tools');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = currentTools.filter(t =>
-                t.name.toLowerCase().includes(term) ||
+    const filterSelect = document.getElementById('filter-category');
+
+    function applyFilters() {
+        const term = searchInput ? searchInput.value.toLowerCase() : '';
+        const cat = filterSelect ? filterSelect.value : '';
+
+        const filtered = currentTools.filter(t => {
+            const matchesTerm = t.name.toLowerCase().includes(term) ||
                 t.category.toLowerCase().includes(term) ||
-                (t.url && t.url.toLowerCase().includes(term))
-            );
-            renderTools(filtered);
+                (t.url && t.url.toLowerCase().includes(term));
+
+            const matchesCat = cat === '' || t.category === cat;
+
+            return matchesTerm && matchesCat;
         });
+
+        renderTools(filtered);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+
+    if (filterSelect) {
+        filterSelect.addEventListener('change', applyFilters);
     }
 
     // --- Tool Logic ---
@@ -616,8 +643,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${!readOnly ? `
                 <div class="tool-footer">
-                    <button onclick="editTool(${tool.id})" class="icon-btn edit-btn" title="Editar"><i class='bx bx-pencil'></i></button>
-                    <button onclick="deleteTool(${tool.id})" class="icon-btn delete-btn" title="Eliminar"><i class='bx bx-trash'></i></button>
+                    <button onclick="editTool('${tool.id}')" class="icon-btn edit-btn" title="Editar"><i class='bx bx-pencil'></i></button>
+                    <button onclick="deleteTool('${tool.id}')" class="icon-btn delete-btn" title="Eliminar"><i class='bx bx-trash'></i></button>
                     <a href="${tool.url}" target="_blank" class="icon-btn" title="Abrir"><i class='bx bx-link-external'></i></a>
                 </div>` : ''}
             `;
