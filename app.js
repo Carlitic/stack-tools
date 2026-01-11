@@ -155,6 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mobileNavOverlay) mobileNavOverlay.classList.add('hidden');
     };
 
+    // --- Global Helpers (Hoisted for reliability) ---
+    window.editTool = function (id) {
+        // defined in closure
+        const tool = currentTools.find(t => t.id == id);
+        if (tool) openModal(tool);
+    };
+
+    window.deleteTool = function (id) {
+        openDeleteModal(id);
+    };
+
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', () => {
             if (mobileNavOverlay) mobileNavOverlay.classList.remove('hidden');
@@ -568,17 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    window.editTool = function (id) {
-        const tool = currentTools.find(t => t.id == id);
-        if (!tool) return;
 
-        openModal(tool);
-    };
-
-    // Expose delete to global scope for onclick in HTML string
-    window.deleteTool = function (id) {
-        openDeleteModal(id);
-    };
 
     function renderTools(toolsToRender = currentTools, readOnly = false) {
         const grid = document.getElementById('tools-grid');
